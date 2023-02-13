@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/emohankrishna/RMS/database"
-	"github.com/emohankrishna/RMS/middleware"
 	"github.com/emohankrishna/RMS/routes"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,7 +19,7 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 	routes.UserRoutes(router)
-	router.Use(middleware.Authentication())
+	// router.Use(middleware.Authentication())
 
 	routes.FoodRoutes(router)
 	routes.MenuRoutes(router)

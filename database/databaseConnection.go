@@ -3,15 +3,25 @@ package database
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		color.Red("Failing in Loading Godotenv")
+		log.Fatal("Error loading .env file")
+	}
+}
+
 func DBinstance() *mongo.Client {
-	MongoDb := "mongodb+srv://<username>:<password>@mflix.0uncx.mongodb.net/test"
+	MongoDb := os.Getenv("MONGO_DB_URI")
 	client, err := mongo.NewClient(options.Client().ApplyURI(MongoDb))
 	if err != nil {
 		color.Red("MongoDB Connection Failed")
@@ -25,7 +35,7 @@ func DBinstance() *mongo.Client {
 		color.Red("MongoDB Connection Failed")
 		log.Fatal(err)
 	}
-	color.Green("Succesfully Connected to MongoDB")
+	color.Green("Successfully Connected to MongoDB")
 	return client
 }
 

@@ -10,7 +10,7 @@ type Note struct {
 	ID         primitive.ObjectID `bson:"_id"`
 	Text       *string            `json:"text"`
 	Title      *string            `json:"title" validate:"required,min=2,max=100"`
-	Created_at *time.Time         `json:"created_at"`
-	Updated_at *time.Time         `json:"updated_at"`
+	Created_at time.Time          `json:"created_at"`
+	Updated_at time.Time          `json:"updated_at"`
 	Note_id    *string            `json:"note_id"`
 }
