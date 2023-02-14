@@ -8,8 +8,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GetHash(str []byte) string {
-	hashDigest, err := bcrypt.GenerateFromPassword(str, bcrypt.DefaultCost)
+type UserClaims struct {
+	jwt.StandardClaims
+	User_id string
+}
+
+func GetHash(password []byte) string {
+	hashDigest, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -17,14 +22,8 @@ func GetHash(str []byte) string {
 }
 
 func VerifyPassword(hashedPassword, password []byte) bool {
-	fmt.Println(string(hashedPassword), string(password))
 	err := bcrypt.CompareHashAndPassword(hashedPassword, password)
 	return err == nil
-}
-
-type UserClaims struct {
-	jwt.StandardClaims
-	User_id string
 }
 
 func CreateToken(c *UserClaims) (string, error) {
