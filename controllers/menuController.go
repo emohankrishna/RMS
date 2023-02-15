@@ -130,6 +130,5 @@ func UpdateMenu() gin.HandlerFunc {
 
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Start Date or End Date is invalid"})
-		return
 	}
 }
