@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/emohankrishna/RMS/database"
@@ -25,11 +26,57 @@ func GetFoods() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
-		filter := bson.D{}
-		var allFood []models.Food
-		resultCursor, err := foodCollection.Find(ctx, filter)
+		recordsPerPage, err := strconv.Atoi(c.DefaultQuery("recordsPerPage", "10"))
+
+		if err != nil || recordsPerPage < 1 {
+			recordsPerPage = 10
+		}
+		page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+		if err != nil || page < 1 {
+			page = 1
+		}
+
+		startIndex := (page - 1) * recordsPerPage
+		// startIndex, err = strconv.Atoi(c.Query("startIndex"))
+
+		matchStage := bson.D{
+			{"$match", bson.D{{}}},
+		}
+		groupStage := bson.D{
+			{"$group",
+				bson.D{
+					{"_id", primitive.Null{}},
+					{"total_count", bson.D{{"$sum", 1}}},
+					{"data", bson.D{{"$push", "$$ROOT"}}},
+				},
+			},
+		}
+		projectStage := bson.D{
+			{"$project",
+				bson.D{
+					{"_id", 0},
+					{"total_count", 1},
+					{"data",
+						bson.D{
+							{"$slice",
+								bson.A{
+									"$data",
+									startIndex,
+									recordsPerPage,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		color.Red("recordsPerPage%d startIndex %d", recordsPerPage, startIndex)
+		var allFood []bson.M
+		resultCursor, err := foodCollection.Aggregate(ctx, mongo.Pipeline{
+			matchStage, groupStage, projectStage,
+		})
 		if err != nil {
-			color.Red("Failed to fetch All food")
+			color.Red("Failed to fetch All food ", err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching the foods"})
 			return
 		}
@@ -38,7 +85,7 @@ func GetFoods() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while decoding the foods"})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"results": allFood})
+		c.JSON(http.StatusOK, allFood)
 	}
 }
 
